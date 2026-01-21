@@ -32,7 +32,13 @@ public class FighterSkill {
     }
 
     public enum SkillType {
-        ATTACK("Attack"), MANA("Mana"), SPEED("Speed"), DEFENSE("Defense");
+        ATTACK("Attack"),
+        ATTACK_SPEED("Attack Speed"),
+        DEFENSE("Defense"),
+        CRITICAL_CHANCE("Critical Chance"),
+        CRITICAL_DAMAGE("Critical Damage Multiplier"),
+        BLOCK_CHANCE("Block Chance"),
+        PROJECTILE_DAMAGE("Projectile Damage");
 
         private final String name;
 
