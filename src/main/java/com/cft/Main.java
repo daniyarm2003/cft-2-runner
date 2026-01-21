@@ -4,10 +4,7 @@ import com.cft.fighters.FighterFactory;
 import com.cft.fighters.FighterFactoryImpl;
 import com.cft.skillstates.FighterSkillStateManagerFactory;
 import com.cft.skillstates.FighterSkillStateManagerFactoryImpl;
-import com.cft.state.CFTSaveContextSerializer;
-import com.cft.state.CFTState;
-import com.cft.state.FileCFTStateSaver;
-import com.cft.state.JsonCFTSaveContextSerializer;
+import com.cft.state.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.cli.*;
 import org.apache.commons.cli.help.HelpFormatter;
@@ -26,7 +23,7 @@ public class Main {
         FighterSkillStateManagerFactory skillStateManagerFactory = new FighterSkillStateManagerFactoryImpl(5.0, 2.0);
         FighterFactory fighterFactory = new FighterFactoryImpl(random, skillStateManagerFactory);
 
-        CFTSaveContextSerializer contextSerializer = new JsonCFTSaveContextSerializer(jsonMapper);
+        CFTSaveContextSerializer contextSerializer = new GzipJsonCFTSaveContextSerializer(jsonMapper);
         FileCFTStateSaver stateSaver = new FileCFTStateSaver(defaultFile, contextSerializer);
 
         CFTState cftState = new CFTState(fighterFactory, stateSaver);
