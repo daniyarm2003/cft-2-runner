@@ -23,8 +23,8 @@ public class FighterFactoryImpl implements FighterFactory {
 
     @Override
     public Fighter createFighter(String fighterName) {
-        double initialSkillMean = 7.0;
-        double initialSkillStdDev = 2.8;
+        double initialSkillMean = 3.5;
+        double initialSkillStdDev = 1.4;
 
         double primeEventMean = 30.0;
         double primeEventStdDev = 5.0;
@@ -35,7 +35,7 @@ public class FighterFactoryImpl implements FighterFactory {
         FighterSkillStateManager skillStateManager = skillStateManagerFactory.createSkillStateManager(this.random);
 
         return new Fighter(this.curFighterId++, fighterName, random, initialSkill, primeEvent, List.of(
-                new GaussianRandomSkillUpdater(0.8, 0.0, 0.56),
+                new GaussianRandomSkillUpdater(0.8, 0.0, 0.28),
                 new DirectCompetitionSkillUpdater(0.25),
                 new PositionMaintainSkillUpdater(1.5)
         ), skillStateManager);

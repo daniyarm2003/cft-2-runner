@@ -18,7 +18,7 @@ public class Main {
         Random random = new Random();
         ObjectMapper jsonMapper = new ObjectMapper();
 
-        File defaultFile = new File("cft.dat");
+        File defaultFile = new File("cft2.dat");
 
         FighterSkillStateManagerFactory skillStateManagerFactory = new FighterSkillStateManagerFactoryImpl(5.0, 2.0);
         FighterFactory fighterFactory = new FighterFactoryImpl(random, skillStateManagerFactory);
