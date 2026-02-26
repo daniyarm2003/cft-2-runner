@@ -128,6 +128,10 @@ public class Fighter {
         return this.health;
     }
 
+    public FighterHeartClass getHeartClass() {
+        return FighterHeartClass.getHealthClassByHealthValue(this.getHealth());
+    }
+
     public void setHealth(double health) {
         this.health = health;
     }
@@ -151,5 +155,9 @@ public class Fighter {
         this.updateSkills(netSkillIncrease);
 
         this.fightCount++;
+    }
+
+    public String getName() {
+        return name;
     }
 }

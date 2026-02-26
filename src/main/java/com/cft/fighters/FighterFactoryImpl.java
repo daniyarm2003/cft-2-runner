@@ -22,7 +22,7 @@ public class FighterFactoryImpl implements FighterFactory {
     }
 
     @Override
-    public Fighter createFighter(String fighterName, FighterHealthClass healthClass) {
+    public Fighter createFighter(String fighterName, FighterHeartClass healthClass) {
         double initialSkillMean = 3.5;
         double initialSkillStdDev = 1.4;
 

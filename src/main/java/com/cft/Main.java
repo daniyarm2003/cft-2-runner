@@ -3,7 +3,7 @@ package com.cft;
 import com.cft.fighters.Fighter;
 import com.cft.fighters.FighterFactory;
 import com.cft.fighters.FighterFactoryImpl;
-import com.cft.fighters.FighterHealthClass;
+import com.cft.fighters.FighterHeartClass;
 import com.cft.skillstates.FighterSkillStateManagerFactory;
 import com.cft.skillstates.FighterSkillStateManagerFactoryImpl;
 import com.cft.state.*;
@@ -64,12 +64,16 @@ public class Main {
                 cftState.runEvent();
                 cftState.saveState();
 
-                System.out.println("CFT event complete!");
+                System.out.printf("CFT event complete! Total events completed: %d\n", cftState.getNumCftEventsPassed());
                 System.exit(0);
             }
 
             if(commandLine.hasOption('n')) {
                 handleNewFighterCommand(commandLine, cftState, random);
+            }
+
+            if(commandLine.hasOption('c')) {
+                handleChangeHeartClassCommand(commandLine, cftState, random);
             }
         }
         catch(ParseException e) {
@@ -86,28 +90,68 @@ public class Main {
         String fighterName = commandLine.getOptionValue('n');
         String healthClassName = commandLine.getOptionValue("heart-class");
 
-        FighterHealthClass healthClass;
+        FighterHeartClass healthClass;
 
         if(healthClassName == null) {
-            int healthClassIndex = random.nextInt(FighterHealthClass.values().length);
-            healthClass = FighterHealthClass.values()[healthClassIndex];
+            int healthClassIndex = random.nextInt(FighterHeartClass.values().length);
+            healthClass = FighterHeartClass.values()[healthClassIndex];
         }
         else {
-            healthClass = FighterHealthClass.findHealthClassByName(healthClassName);
+            healthClass = FighterHeartClass.findHealthClassByName(healthClassName);
 
             if(healthClass == null) {
-                System.err.printf("Error: unknown fighter health class '%s'\n", healthClassName);
+                System.err.printf("Error: unknown fighter heart class '%s'\n", healthClassName);
                 System.exit(1);
             }
         }
 
-        System.out.printf("Adding fighter %s with health class %s (%s)...\n", fighterName, healthClass.getHeartClassName(), healthClass.getShortName());
+        System.out.printf("Adding fighter %s with heart class %s (%s)...\n", fighterName, healthClass.getHeartClassName(), healthClass.getShortName());
 
         Fighter fighter = cftState.addFighter(fighterName, healthClass);
         cftState.saveState();
 
         System.out.printf("Added fighter %s (ID: %d) successfully!\n", fighterName, fighter.getId());
         System.exit(0);
+    }
+
+    private static void handleChangeHeartClassCommand(CommandLine commandLine, CFTState cftState, Random random) throws IOException {
+        String fighterIdStr = commandLine.getOptionValue('c');
+        String healthClassName = commandLine.getOptionValue("heart-class");
+
+        int fighterId = 0;
+        FighterHeartClass healthClass;
+
+        try {
+            fighterId = Integer.parseInt(fighterIdStr);
+        }
+        catch(NumberFormatException e) {
+            System.err.printf("Invalid fighter id '%s'\n", fighterIdStr);
+            System.exit(1);
+        }
+
+        if(healthClassName == null) {
+            int healthClassIndex = random.nextInt(FighterHeartClass.values().length);
+            healthClass = FighterHeartClass.values()[healthClassIndex];
+        }
+        else {
+            healthClass = FighterHeartClass.findHealthClassByName(healthClassName);
+
+            if(healthClass == null) {
+                System.err.printf("Error: unknown fighter heart class '%s'\n", healthClassName);
+                System.exit(1);
+            }
+        }
+
+        try {
+            Fighter fighter = cftState.changeFighterHeartClass(fighterId, healthClass, random);
+            cftState.saveState();
+
+            System.out.printf("Fighter %s (ID: %d) is now in the %s (%s) heart class.\n", fighter.getName(), fighter.getId(), fighter.getHeartClass().getHeartClassName(), fighter.getHeartClass().getShortName());
+            System.exit(0);
+        }
+        catch (CFTState.FighterNotFoundException e) {
+            System.err.printf("Error: fighter with ID %d not found\n", e.getFighterId());
+        }
     }
 
     private static Options createCliOptions() {
@@ -122,6 +166,12 @@ public class Main {
                 .longOpt("new-fighter")
                 .hasArg().argName("fighter_name")
                 .desc("Adds a new fighter to the CFT with a specified name")
+                .get();
+
+        Option changeFighterOption = Option.builder("c")
+                .longOpt("change-fighter")
+                .hasArg().argName("fighter_id")
+                .desc("Updates fighter stats, only heart class is modifiable at the moment")
                 .get();
 
         Option helpOption = Option.builder("h")
@@ -146,6 +196,7 @@ public class Main {
         optionGroup.addOption(runEventOption);
         optionGroup.addOption(addFighterOption);
         optionGroup.addOption(helpOption);
+        optionGroup.addOption(changeFighterOption);
 
         optionGroup.setRequired(true);
 

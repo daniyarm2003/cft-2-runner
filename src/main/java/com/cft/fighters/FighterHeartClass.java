@@ -2,7 +2,7 @@ package com.cft.fighters;
 
 import java.util.Random;
 
-public enum FighterHealthClass {
+public enum FighterHeartClass {
     BLUE_HEART("BLH", 1.0, 50.0, 0.8),
     PURPLE_HEART("PH", 51.0, 100.0, 0.5),
     GREEN_HEART("GH", 101.0, 200.0, 0.5),
@@ -14,7 +14,7 @@ public enum FighterHealthClass {
     private final double maxHp;
     private final double skew;
 
-    FighterHealthClass(String shortName, double minHp, double maxHp, double skew) {
+    FighterHeartClass(String shortName, double minHp, double maxHp, double skew) {
         this.shortName = shortName;
         this.minHp = minHp;
         this.maxHp = maxHp;
@@ -40,20 +40,24 @@ public enum FighterHealthClass {
         return this.maxHp;
     }
 
-    private double getSkew() {
+    public double getSkew() {
         return this.skew;
     }
 
     public double generateHealthValue(Random random) {
+        return this.generateHealthValue(random, this.getSkew());
+    }
+
+    public double generateHealthValue(Random random, double skew) {
         double range = this.getMaxHp() - this.getMinHp();
-        double center = (1.0 - this.getSkew()) * this.getMinHp() + this.getSkew() * this.getMaxHp();
+        double center = (1.0 - skew) * this.getMinHp() + skew * this.getMaxHp();
         double stdDev = Math.sqrt(range);
 
-        double stdDevLeft = stdDev * this.getSkew();
-        double stdDevRight = stdDev * (1.0 - this.getSkew());
+        double stdDevLeft = stdDev * skew;
+        double stdDevRight = stdDev * (1.0 - skew);
 
         double mag = Math.abs(random.nextGaussian());
-        boolean isLeft = random.nextDouble() < this.getSkew();
+        boolean isLeft = random.nextDouble() < skew;
 
         double hp = center + mag * (isLeft ? -stdDevLeft : stdDevRight);
 
@@ -63,9 +67,9 @@ public enum FighterHealthClass {
         return hp;
     }
 
-    public static FighterHealthClass getHealthClassByHealthValue(double healthValue) {
-        for (FighterHealthClass healthClass : values()) {
-            if(healthValue >= healthClass.getMinHp() && healthValue <= healthClass.getMaxHp()) {
+    public static FighterHeartClass getHealthClassByHealthValue(double healthValue) {
+        for (FighterHeartClass healthClass : values()) {
+            if(healthValue <= healthClass.getMaxHp()) {
                 return healthClass;
             }
         }
@@ -73,8 +77,8 @@ public enum FighterHealthClass {
         return BLUE_HEART;
     }
 
-    public static FighterHealthClass findHealthClassByName(String name) {
-        for (FighterHealthClass healthClass : values()) {
+    public static FighterHeartClass findHealthClassByName(String name) {
+        for (FighterHeartClass healthClass : values()) {
             if(healthClass.getShortName().equals(name) || healthClass.getHeartClassName().equals(name) || healthClass.name().equals(name)) {
                 return healthClass;
             }
