@@ -3,20 +3,22 @@ package com.cft.fighters;
 import java.util.Random;
 
 public enum FighterHealthClass {
-    BLUE_HEART("BLH", 1.0, 49.0),
-    PURPLE_HEART("PH", 51.0, 99.0),
-    GREEN_HEART("GH", 101.0, 199.0),
-    RED_HEART("RH", 201.0, 499.0),
-    BROWN_HEART("BRH", 501.0, 999.0);
+    BLUE_HEART("BLH", 1.0, 50.0, 0.8),
+    PURPLE_HEART("PH", 51.0, 100.0, 0.5),
+    GREEN_HEART("GH", 101.0, 200.0, 0.5),
+    RED_HEART("RH", 201.0, 500.0, 0.5),
+    BROWN_HEART("BRH", 501.0, 1000.0, 0.2);
 
     private final String shortName;
     private final double minHp;
     private final double maxHp;
+    private final double skew;
 
-    FighterHealthClass(String shortName, double minHp, double maxHp) {
+    FighterHealthClass(String shortName, double minHp, double maxHp, double skew) {
         this.shortName = shortName;
         this.minHp = minHp;
         this.maxHp = maxHp;
+        this.skew = skew;
     }
 
     public String getHeartClassName() {
@@ -38,13 +40,22 @@ public enum FighterHealthClass {
         return this.maxHp;
     }
 
+    private double getSkew() {
+        return this.skew;
+    }
+
     public double generateHealthValue(Random random) {
         double range = this.getMaxHp() - this.getMinHp();
+        double center = (1.0 - this.getSkew()) * this.getMinHp() + this.getSkew() * this.getMaxHp();
+        double stdDev = Math.sqrt(range);
 
-        double mean = this.getMinHp() + range / 2.0;
-        double stdDev = Math.sqrt(range / 2.0);
+        double stdDevLeft = stdDev * this.getSkew();
+        double stdDevRight = stdDev * (1.0 - this.getSkew());
 
-        double hp = random.nextGaussian(mean, stdDev);
+        double mag = Math.abs(random.nextGaussian());
+        boolean isLeft = random.nextDouble() < this.getSkew();
+
+        double hp = center + mag * (isLeft ? -stdDevLeft : stdDevRight);
 
         hp = Math.min(hp, this.getMaxHp());
         hp = Math.max(hp, this.getMinHp());
@@ -59,7 +70,7 @@ public enum FighterHealthClass {
             }
         }
 
-        return BROWN_HEART;
+        return BLUE_HEART;
     }
 
     public static FighterHealthClass findHealthClassByName(String name) {
