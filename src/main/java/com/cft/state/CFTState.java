@@ -2,6 +2,7 @@ package com.cft.state;
 
 import com.cft.fighters.Fighter;
 import com.cft.fighters.FighterFactory;
+import com.cft.fighters.FighterHealthClass;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,8 +21,11 @@ public class CFTState {
         this.stateSaver = stateSaver;
     }
 
-    public void addFighter(String fighterName) {
-        this.fighters.add(this.fighterFactory.createFighter(fighterName));
+    public Fighter addFighter(String fighterName, FighterHealthClass healthClass) {
+        Fighter fighter = this.fighterFactory.createFighter(fighterName, healthClass);
+        this.fighters.add(fighter);
+
+        return fighter;
     }
 
     public void runEvent() {

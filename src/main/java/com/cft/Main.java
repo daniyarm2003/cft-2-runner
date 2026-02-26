@@ -1,7 +1,9 @@
 package com.cft;
 
+import com.cft.fighters.Fighter;
 import com.cft.fighters.FighterFactory;
 import com.cft.fighters.FighterFactoryImpl;
+import com.cft.fighters.FighterHealthClass;
 import com.cft.skillstates.FighterSkillStateManagerFactory;
 import com.cft.skillstates.FighterSkillStateManagerFactoryImpl;
 import com.cft.state.*;
@@ -23,7 +25,7 @@ public class Main {
         FighterSkillStateManagerFactory skillStateManagerFactory = new FighterSkillStateManagerFactoryImpl(5.0, 2.0);
         FighterFactory fighterFactory = new FighterFactoryImpl(random, skillStateManagerFactory);
 
-        CFTSaveContextSerializer contextSerializer = new GzipJsonCFTSaveContextSerializer(jsonMapper);
+        CFTSaveContextSerializer contextSerializer = new JsonCFTSaveContextSerializer(jsonMapper, false);
         FileCFTStateSaver stateSaver = new FileCFTStateSaver(defaultFile, contextSerializer);
 
         CFTState cftState = new CFTState(fighterFactory, stateSaver);
@@ -67,15 +69,7 @@ public class Main {
             }
 
             if(commandLine.hasOption('n')) {
-                String fighterName = commandLine.getOptionValue('n');
-
-                System.out.printf("Adding fighter %s...\n", fighterName);
-
-                cftState.addFighter(fighterName);
-                cftState.saveState();
-
-                System.out.printf("Added fighter %s successfully!\n", fighterName);
-                System.exit(0);
+                handleNewFighterCommand(commandLine, cftState, random);
             }
         }
         catch(ParseException e) {
@@ -86,6 +80,34 @@ public class Main {
             System.err.println("An IO error has occurred: " + e.getLocalizedMessage());
             System.exit(1);
         }
+    }
+
+    private static void handleNewFighterCommand(CommandLine commandLine, CFTState cftState, Random random) throws IOException {
+        String fighterName = commandLine.getOptionValue('n');
+        String healthClassName = commandLine.getOptionValue("heart-class");
+
+        FighterHealthClass healthClass;
+
+        if(healthClassName == null) {
+            int healthClassIndex = random.nextInt(FighterHealthClass.values().length);
+            healthClass = FighterHealthClass.values()[healthClassIndex];
+        }
+        else {
+            healthClass = FighterHealthClass.findHealthClassByName(healthClassName);
+
+            if(healthClass == null) {
+                System.err.printf("Error: unknown fighter health class '%s'\n", healthClassName);
+                System.exit(1);
+            }
+        }
+
+        System.out.printf("Adding fighter %s with health class %s (%s)...\n", fighterName, healthClass.getHeartClassName(), healthClass.getShortName());
+
+        Fighter fighter = cftState.addFighter(fighterName, healthClass);
+        cftState.saveState();
+
+        System.out.printf("Added fighter %s (ID: %d) successfully!\n", fighterName, fighter.getId());
+        System.exit(0);
     }
 
     private static Options createCliOptions() {
@@ -113,6 +135,12 @@ public class Main {
                 .desc("Sets the location of the save file")
                 .get();
 
+        Option healthClassOption = Option.builder()
+                .longOpt("heart-class")
+                .hasArg().argName("class_name")
+                .desc("Sets the heart class of the fighter")
+                .get();
+
         OptionGroup optionGroup = new OptionGroup();
 
         optionGroup.addOption(runEventOption);
@@ -122,7 +150,9 @@ public class Main {
         optionGroup.setRequired(true);
 
         cliOptions.addOptionGroup(optionGroup);
+
         cliOptions.addOption(saveFileOption);
+        cliOptions.addOption(healthClassOption);
 
         return cliOptions;
     }

@@ -27,11 +27,13 @@ public class Fighter {
     @JsonProperty
     private final FighterSkillStateManager skillStateManager;
 
+    private double health;
+
     private int fightCount = 0;
 
     private boolean deleted = false;
 
-    public Fighter(int id, String name, Random random, double initialSkill, int primeEvent, List<FighterSkillUpdater> skillUpdaters, FighterSkillStateManager skillStateManager) {
+    public Fighter(int id, String name, Random random, double initialSkill, int primeEvent, double health, List<FighterSkillUpdater> skillUpdaters, FighterSkillStateManager skillStateManager) {
         this.id = id;
         this.name = name;
 
@@ -47,13 +49,15 @@ public class Fighter {
 
         this.skillUpdaters = List.copyOf(skillUpdaters);
         this.skillStateManager = skillStateManager;
+
+        this.health = health;
     }
 
     @JsonCreator
     public Fighter(@JsonProperty("id") int id, @JsonProperty("name") String name, @JsonProperty("primeEvent") int primeEvent,
                    @JsonProperty("skills") List<FighterSkill> skills, @JsonProperty("skillUpdaters") List<FighterSkillUpdater> skillUpdaters,
                    @JsonProperty("skillStateManager") FighterSkillStateManager skillStateManager, @JsonProperty("fightCount") int fightCount,
-                   @JsonProperty("deleted") boolean deleted) {
+                   @JsonProperty("deleted") boolean deleted, @JsonProperty("health") double health) {
 
         this.id = id;
         this.name = name;
@@ -67,6 +71,8 @@ public class Fighter {
 
         this.fightCount = fightCount;
         this.deleted = deleted;
+
+        this.health = health;
     }
 
     public void updateSkills(double skillDelta) {
@@ -116,6 +122,14 @@ public class Fighter {
 
     public void setDeleted(boolean deleted) {
         this.deleted = deleted;
+    }
+
+    public double getHealth() {
+        return this.health;
+    }
+
+    public void setHealth(double health) {
+        this.health = health;
     }
 
     public void update(List<Fighter> otherFighters) {
