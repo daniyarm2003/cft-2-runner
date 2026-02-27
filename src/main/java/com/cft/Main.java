@@ -25,7 +25,7 @@ public class Main {
         FighterSkillStateManagerFactory skillStateManagerFactory = new FighterSkillStateManagerFactoryImpl(5.0, 2.0);
         FighterFactory fighterFactory = new FighterFactoryImpl(random, skillStateManagerFactory);
 
-        CFTSaveContextSerializer contextSerializer = new JsonCFTSaveContextSerializer(jsonMapper, false);
+        CFTSaveContextSerializer contextSerializer = new JsonCFTSaveContextSerializer(jsonMapper, true);
         FileCFTStateSaver stateSaver = new FileCFTStateSaver(defaultFile, contextSerializer);
 
         CFTState cftState = new CFTState(fighterFactory, stateSaver);
@@ -74,6 +74,10 @@ public class Main {
 
             if(commandLine.hasOption('c')) {
                 handleChangeHeartClassCommand(commandLine, cftState, random);
+            }
+
+            if(commandLine.hasOption('d')) {
+                handleDeleteFighterCommand(commandLine, cftState);
             }
         }
         catch(ParseException e) {
@@ -154,6 +158,31 @@ public class Main {
         }
     }
 
+    private static void handleDeleteFighterCommand(CommandLine commandLine, CFTState cftState) throws IOException {
+        String fighterIdStr = commandLine.getOptionValue('c');
+
+        int fighterId = 0;
+
+        try {
+            fighterId = Integer.parseInt(fighterIdStr);
+        }
+        catch(NumberFormatException e) {
+            System.err.printf("Invalid fighter id '%s'\n", fighterIdStr);
+            System.exit(1);
+        }
+
+        try {
+            Fighter fighter = cftState.deleteFighter(fighterId);
+            cftState.saveState();
+
+            System.out.printf("Fighter %s (ID: %d) deleted successfully!\n", fighter.getName(), fighter.getId());
+            System.exit(0);
+        }
+        catch (CFTState.FighterNotFoundException e) {
+            System.err.printf("Error: fighter with ID %d not found\n", e.getFighterId());
+        }
+    }
+
     private static Options createCliOptions() {
         Options cliOptions = new Options();
 
@@ -172,6 +201,12 @@ public class Main {
                 .longOpt("change-fighter")
                 .hasArg().argName("fighter_id")
                 .desc("Updates fighter stats, only heart class is modifiable at the moment")
+                .get();
+
+        Option deleteFighterOption = Option.builder("d")
+                .longOpt("delete-fighter")
+                .hasArg().argName("fighter_id")
+                .desc("Deletes a fighter with the specified id")
                 .get();
 
         Option helpOption = Option.builder("h")
@@ -197,6 +232,7 @@ public class Main {
         optionGroup.addOption(addFighterOption);
         optionGroup.addOption(helpOption);
         optionGroup.addOption(changeFighterOption);
+        optionGroup.addOption(deleteFighterOption);
 
         optionGroup.setRequired(true);
 

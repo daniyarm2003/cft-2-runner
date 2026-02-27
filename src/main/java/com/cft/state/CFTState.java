@@ -70,6 +70,13 @@ public class CFTState {
         return fighter;
     }
 
+    public Fighter deleteFighter(int fighterId) throws FighterNotFoundException {
+        Fighter fighter = this.getFighterById(fighterId);
+        fighter.setDeleted(true);
+
+        return fighter;
+    }
+
     public void loadState() throws IOException {
         if(this.stateSaver.isSaved()) {
             SaveContext saveContext = this.stateSaver.load();
