@@ -83,6 +83,8 @@ public class CFTState {
 
             this.fighters = new ArrayList<>(saveContext.fighters());
             this.fighterFactory.setCurrentId(this.fighters.stream().mapToInt(Fighter::getId).max().orElse(-1) + 1);
+
+            this.cftEventsPassed = saveContext.cftEventsPassed();
         }
     }
 
