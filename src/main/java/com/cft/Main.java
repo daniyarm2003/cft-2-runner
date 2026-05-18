@@ -1,5 +1,7 @@
 package com.cft;
 
+import com.cft.attacks.RandomSpecialAttackFactory;
+import com.cft.attacks.SpecialAttackFactory;
 import com.cft.fighters.Fighter;
 import com.cft.fighters.FighterFactory;
 import com.cft.fighters.FighterFactoryImpl;
@@ -13,6 +15,7 @@ import org.apache.commons.cli.help.HelpFormatter;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.*;
 
 public class Main {
@@ -23,9 +26,11 @@ public class Main {
         File defaultFile = new File("cft2.dat");
 
         FighterSkillStateManagerFactory skillStateManagerFactory = new FighterSkillStateManagerFactoryImpl(5.0, 2.0);
-        FighterFactory fighterFactory = new FighterFactoryImpl(random, skillStateManagerFactory);
+        SpecialAttackFactory specialAttackFactory = new RandomSpecialAttackFactory(random);
 
-        CFTSaveContextSerializer contextSerializer = new JsonCFTSaveContextSerializer(jsonMapper, true);
+        FighterFactory fighterFactory = new FighterFactoryImpl(random, skillStateManagerFactory, specialAttackFactory);
+
+        CFTSaveContextSerializer contextSerializer = new JsonCFTSaveContextSerializer(jsonMapper, false);
         FileCFTStateSaver stateSaver = new FileCFTStateSaver(defaultFile, contextSerializer);
 
         CFTState cftState = new CFTState(fighterFactory, stateSaver);
@@ -78,6 +83,10 @@ public class Main {
 
             if(commandLine.hasOption('d')) {
                 handleDeleteFighterCommand(commandLine, cftState);
+            }
+
+            if(commandLine.hasOption('i')) {
+                handleListInfoCommand(cftState);
             }
         }
         catch(ParseException e) {
@@ -155,6 +164,7 @@ public class Main {
         }
         catch (CFTState.FighterNotFoundException e) {
             System.err.printf("Error: fighter with ID %d not found\n", e.getFighterId());
+            System.exit(1);
         }
     }
 
@@ -180,7 +190,12 @@ public class Main {
         }
         catch (CFTState.FighterNotFoundException e) {
             System.err.printf("Error: fighter with ID %d not found\n", e.getFighterId());
+            System.exit(1);
         }
+    }
+
+    private static void handleListInfoCommand(CFTState cftState) throws IOException {
+        cftState.dumpBasicInfo(System.out);
     }
 
     private static Options createCliOptions() {
@@ -214,6 +229,11 @@ public class Main {
                 .desc("Displays the help message")
                 .get();
 
+        Option listInfoOption = Option.builder("i")
+                .longOpt("list-info")
+                .desc("Displays information such as the number of completed events and basic fighter data")
+                .get();
+
         Option saveFileOption = Option.builder("f")
                 .longOpt("save-file")
                 .hasArg().argName("save_file_location")
@@ -233,6 +253,7 @@ public class Main {
         optionGroup.addOption(helpOption);
         optionGroup.addOption(changeFighterOption);
         optionGroup.addOption(deleteFighterOption);
+        optionGroup.addOption(listInfoOption);
 
         optionGroup.setRequired(true);
 

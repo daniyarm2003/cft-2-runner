@@ -1,5 +1,6 @@
 package com.cft.fighters;
 
+import com.cft.attacks.SpecialAttack;
 import com.cft.skillstates.FighterSkillStateManager;
 import com.cft.skillupdaters.FighterSkillUpdater;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
@@ -19,7 +20,6 @@ public class Fighter {
     private final String name;
 
     private final List<FighterSkill> skills;
-
     private final int primeEvent;
 
     private final List<FighterSkillUpdater> skillUpdaters;
@@ -27,18 +27,20 @@ public class Fighter {
     @JsonProperty
     private final FighterSkillStateManager skillStateManager;
 
+    @JsonProperty
+    private final SpecialAttack specialAttack;
+
     private double health;
-
     private int fightCount = 0;
-
     private boolean deleted = false;
 
-    public Fighter(int id, String name, Random random, double initialSkill, int primeEvent, double health, List<FighterSkillUpdater> skillUpdaters, FighterSkillStateManager skillStateManager) {
+    public Fighter(int id, String name, Random random, double initialSkill, int primeEvent, double health, List<FighterSkillUpdater> skillUpdaters, FighterSkillStateManager skillStateManager, SpecialAttack specialAttack) {
         this.id = id;
         this.name = name;
 
         this.random = random;
         this.primeEvent = primeEvent;
+        this.specialAttack = specialAttack;
         this.skills = new ArrayList<>();
 
         for(FighterSkill.SkillType skillType : FighterSkill.SkillType.values()) {
@@ -57,7 +59,7 @@ public class Fighter {
     public Fighter(@JsonProperty("id") int id, @JsonProperty("name") String name, @JsonProperty("primeEvent") int primeEvent,
                    @JsonProperty("skills") List<FighterSkill> skills, @JsonProperty("skillUpdaters") List<FighterSkillUpdater> skillUpdaters,
                    @JsonProperty("skillStateManager") FighterSkillStateManager skillStateManager, @JsonProperty("fightCount") int fightCount,
-                   @JsonProperty("deleted") boolean deleted, @JsonProperty("health") double health) {
+                   @JsonProperty("deleted") boolean deleted, @JsonProperty("health") double health, @JsonProperty("specialAttack") SpecialAttack specialAttack) {
 
         this.id = id;
         this.name = name;
@@ -73,6 +75,7 @@ public class Fighter {
         this.deleted = deleted;
 
         this.health = health;
+        this.specialAttack = specialAttack;
     }
 
     public void updateSkills(double skillDelta) {
@@ -134,6 +137,10 @@ public class Fighter {
 
     public void setHealth(double health) {
         this.health = health;
+    }
+
+    public SpecialAttack getSpecialAttack() {
+        return this.specialAttack;
     }
 
     public void update(List<Fighter> otherFighters) {

@@ -4,7 +4,10 @@ import com.cft.fighters.Fighter;
 import com.cft.fighters.FighterFactory;
 import com.cft.fighters.FighterHeartClass;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -75,6 +78,18 @@ public class CFTState {
         fighter.setDeleted(true);
 
         return fighter;
+    }
+
+    public void dumpBasicInfo(OutputStream stream) throws IOException {
+        try(OutputStreamWriter writer = new OutputStreamWriter(stream); BufferedWriter bufferedWriter = new BufferedWriter(writer)) {
+            bufferedWriter.write("CFT Events Passed: %d\n".formatted(this.getNumCftEventsPassed()));
+
+            bufferedWriter.write("Fighter Info:\n");
+            for(Fighter fighter : this.fighters) {
+                bufferedWriter.write("ID: %d, Name: %s, Heart Class: %s (%s), Deleted: %s\n".formatted(fighter.getId(), fighter.getName(),
+                        fighter.getHeartClass().getHeartClassName(), fighter.getHeartClass().getShortName(), fighter.isDeleted() ? "Yes" : "No"));
+            }
+        }
     }
 
     public void loadState() throws IOException {

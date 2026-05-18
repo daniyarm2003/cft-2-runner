@@ -1,5 +1,7 @@
 package com.cft.fighters;
 
+import com.cft.attacks.SpecialAttack;
+import com.cft.attacks.SpecialAttackFactory;
 import com.cft.skillstates.FighterSkillStateManager;
 import com.cft.skillstates.FighterSkillStateManagerFactory;
 import com.cft.skillupdaters.DirectCompetitionSkillUpdater;
@@ -13,12 +15,14 @@ public class FighterFactoryImpl implements FighterFactory {
     private final Random random;
 
     private final FighterSkillStateManagerFactory skillStateManagerFactory;
+    private final SpecialAttackFactory specialAttackFactory;
 
     private int curFighterId = 0;
 
-    public FighterFactoryImpl(Random random, FighterSkillStateManagerFactory skillStateManagerFactory) {
+    public FighterFactoryImpl(Random random, FighterSkillStateManagerFactory skillStateManagerFactory, SpecialAttackFactory specialAttackFactory) {
         this.random = random;
         this.skillStateManagerFactory = skillStateManagerFactory;
+        this.specialAttackFactory = specialAttackFactory;
     }
 
     @Override
@@ -35,12 +39,13 @@ public class FighterFactoryImpl implements FighterFactory {
         double health = healthClass.generateHealthValue(this.random);
 
         FighterSkillStateManager skillStateManager = skillStateManagerFactory.createSkillStateManager(this.random);
+        SpecialAttack specialAttack = this.specialAttackFactory.createSpecialAttack();
 
         return new Fighter(this.curFighterId++, fighterName, random, initialSkill, primeEvent, health, List.of(
                 new GaussianRandomSkillUpdater(0.8, 0.0, 0.28),
                 new DirectCompetitionSkillUpdater(0.25),
                 new PositionMaintainSkillUpdater(1.5)
-        ), skillStateManager);
+        ), skillStateManager, specialAttack);
     }
 
     @Override
