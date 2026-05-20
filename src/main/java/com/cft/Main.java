@@ -1,6 +1,7 @@
 package com.cft;
 
 import com.cft.attacks.RandomSpecialAttackFactory;
+import com.cft.attacks.SpecialAttack;
 import com.cft.attacks.SpecialAttackFactory;
 import com.cft.fighters.Fighter;
 import com.cft.fighters.FighterFactory;
@@ -15,7 +16,6 @@ import org.apache.commons.cli.help.HelpFormatter;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.*;
 
 public class Main {
@@ -33,7 +33,7 @@ public class Main {
         CFTSaveContextSerializer contextSerializer = new JsonCFTSaveContextSerializer(jsonMapper, false);
         FileCFTStateSaver stateSaver = new FileCFTStateSaver(defaultFile, contextSerializer);
 
-        CFTState cftState = new CFTState(fighterFactory, stateSaver);
+        CFTState cftState = new CFTState(fighterFactory, stateSaver, specialAttackFactory);
 
         Options cliOptions = createCliOptions();
         HelpFormatter helpFormatter = HelpFormatter.builder().get();
@@ -101,9 +101,12 @@ public class Main {
 
     private static void handleNewFighterCommand(CommandLine commandLine, CFTState cftState, Random random) throws IOException {
         String fighterName = commandLine.getOptionValue('n');
+
         String healthClassName = commandLine.getOptionValue("heart-class");
+        String specialAttackTypeName = commandLine.getOptionValue("special-attack");
 
         FighterHeartClass healthClass;
+        SpecialAttack.Type specialAttackType;
 
         if(healthClassName == null) {
             int healthClassIndex = random.nextInt(FighterHeartClass.values().length);
@@ -118,9 +121,22 @@ public class Main {
             }
         }
 
+        if(specialAttackTypeName == null) {
+            int specialAttackIndex = random.nextInt(SpecialAttack.Type.values().length);
+            specialAttackType = SpecialAttack.Type.values()[specialAttackIndex];
+        }
+        else {
+            specialAttackType = SpecialAttack.getTypeByName(specialAttackTypeName);
+
+            if(specialAttackType == null) {
+                System.err.printf("Error: unknown fighter special attack type '%s'\n", specialAttackTypeName);
+                System.exit(1);
+            }
+        }
+
         System.out.printf("Adding fighter %s with heart class %s (%s)...\n", fighterName, healthClass.getHeartClassName(), healthClass.getShortName());
 
-        Fighter fighter = cftState.addFighter(fighterName, healthClass);
+        Fighter fighter = cftState.addFighter(fighterName, healthClass, specialAttackType);
         cftState.saveState();
 
         System.out.printf("Added fighter %s (ID: %d) successfully!\n", fighterName, fighter.getId());
@@ -129,10 +145,14 @@ public class Main {
 
     private static void handleChangeHeartClassCommand(CommandLine commandLine, CFTState cftState, Random random) throws IOException {
         String fighterIdStr = commandLine.getOptionValue('c');
+
         String healthClassName = commandLine.getOptionValue("heart-class");
+        String specialAttackTypeName = commandLine.getOptionValue("special-attack");
 
         int fighterId = 0;
-        FighterHeartClass healthClass;
+
+        FighterHeartClass healthClass = null;
+        SpecialAttack.Type specialAttackType = null;
 
         try {
             fighterId = Integer.parseInt(fighterIdStr);
@@ -142,11 +162,7 @@ public class Main {
             System.exit(1);
         }
 
-        if(healthClassName == null) {
-            int healthClassIndex = random.nextInt(FighterHeartClass.values().length);
-            healthClass = FighterHeartClass.values()[healthClassIndex];
-        }
-        else {
+        if(healthClassName != null) {
             healthClass = FighterHeartClass.findHealthClassByName(healthClassName);
 
             if(healthClass == null) {
@@ -155,11 +171,22 @@ public class Main {
             }
         }
 
+        if(specialAttackTypeName != null) {
+            specialAttackType = SpecialAttack.getTypeByName(specialAttackTypeName);
+
+            if(specialAttackType == null) {
+                System.err.printf("Error: unknown fighter special attack type '%s'\n", specialAttackTypeName);
+                System.exit(1);
+            }
+        }
+
         try {
-            Fighter fighter = cftState.changeFighterHeartClass(fighterId, healthClass, random);
+            Fighter fighter = cftState.changeFighter(fighterId, healthClass, specialAttackType, random);
             cftState.saveState();
 
-            System.out.printf("Fighter %s (ID: %d) is now in the %s (%s) heart class.\n", fighter.getName(), fighter.getId(), fighter.getHeartClass().getHeartClassName(), fighter.getHeartClass().getShortName());
+            System.out.printf("Updated fighter %s (ID: %d)\n\n", fighter.getName(), fighter.getId());
+
+            handleListInfoCommand(cftState);
             System.exit(0);
         }
         catch (CFTState.FighterNotFoundException e) {
@@ -246,6 +273,12 @@ public class Main {
                 .desc("Sets the heart class of the fighter")
                 .get();
 
+        Option specialAttackOption = Option.builder()
+                .longOpt("special-attack")
+                .hasArg().argName("special_attack_name")
+                .desc("Sets the special attack type of the fighter")
+                .get();
+
         OptionGroup optionGroup = new OptionGroup();
 
         optionGroup.addOption(runEventOption);
@@ -261,6 +294,7 @@ public class Main {
 
         cliOptions.addOption(saveFileOption);
         cliOptions.addOption(healthClassOption);
+        cliOptions.addOption(specialAttackOption);
 
         return cliOptions;
     }

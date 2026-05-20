@@ -1,5 +1,7 @@
 package com.cft.state;
 
+import com.cft.attacks.SpecialAttack;
+import com.cft.attacks.SpecialAttackFactory;
 import com.cft.fighters.Fighter;
 import com.cft.fighters.FighterFactory;
 import com.cft.fighters.FighterHeartClass;
@@ -13,21 +15,23 @@ import java.util.List;
 import java.util.Random;
 
 public class CFTState {
+    private final SpecialAttackFactory specialAttackFactory;
     private List<Fighter> fighters;
     private int cftEventsPassed = 0;
 
     private final FighterFactory fighterFactory;
     private final Saver stateSaver;
 
-    public CFTState(FighterFactory fighterFactory, Saver stateSaver) {
+    public CFTState(FighterFactory fighterFactory, Saver stateSaver, SpecialAttackFactory specialAttackFactory) {
+        this.specialAttackFactory = specialAttackFactory;
         this.fighters = new ArrayList<>();
 
         this.fighterFactory = fighterFactory;
         this.stateSaver = stateSaver;
     }
 
-    public Fighter addFighter(String fighterName, FighterHeartClass healthClass) {
-        Fighter fighter = this.fighterFactory.createFighter(fighterName, healthClass);
+    public Fighter addFighter(String fighterName, FighterHeartClass healthClass, SpecialAttack.Type attackType) {
+        Fighter fighter = this.fighterFactory.createFighter(fighterName, healthClass, attackType);
         this.fighters.add(fighter);
 
         return fighter;
@@ -58,17 +62,23 @@ public class CFTState {
                 .orElseThrow(() -> new FighterNotFoundException(id));
     }
 
-    public Fighter changeFighterHeartClass(int fighterId, FighterHeartClass healthClass, Random random) throws FighterNotFoundException {
+    public Fighter changeFighter(int fighterId, FighterHeartClass healthClass, SpecialAttack.Type attackType, Random random) throws FighterNotFoundException {
         Fighter fighter = this.getFighterById(fighterId);
 
-        FighterHeartClass curHeartClass = fighter.getHeartClass();
-        double skew = curHeartClass.getSkew();
+        if(healthClass != null) {
+            FighterHeartClass curHeartClass = fighter.getHeartClass();
+            double skew = curHeartClass.getSkew();
 
-        if(curHeartClass != healthClass) {
-            skew = healthClass.getMinHp() < curHeartClass.getMinHp() ? 0.8 : 0.2;
+            if(curHeartClass != healthClass) {
+                skew = healthClass.getMinHp() < curHeartClass.getMinHp() ? 0.8 : 0.2;
+            }
+
+            fighter.setHealth(healthClass.generateHealthValue(random, skew));
         }
 
-        fighter.setHealth(healthClass.generateHealthValue(random, skew));
+        if(attackType != null) {
+            fighter.setSpecialAttack(this.specialAttackFactory.createSpecialAttack(attackType));
+        }
 
         return fighter;
     }
@@ -86,8 +96,9 @@ public class CFTState {
 
             bufferedWriter.write("Fighter Info:\n");
             for(Fighter fighter : this.fighters) {
-                bufferedWriter.write("ID: %d, Name: %s, Heart Class: %s (%s), Deleted: %s\n".formatted(fighter.getId(), fighter.getName(),
-                        fighter.getHeartClass().getHeartClassName(), fighter.getHeartClass().getShortName(), fighter.isDeleted() ? "Yes" : "No"));
+                bufferedWriter.write("ID: %d, Name: %s, Heart Class: %s (%s), Special Attack Type: %s, Deleted: %s\n".formatted(fighter.getId(), fighter.getName(),
+                        fighter.getHeartClass().getHeartClassName(), fighter.getHeartClass().getShortName(), fighter.getSpecialAttack().getSpecialAttackType().getReadableName(),
+                        fighter.isDeleted() ? "Yes" : "No"));
             }
         }
     }

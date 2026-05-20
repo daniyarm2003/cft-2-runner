@@ -26,7 +26,7 @@ public class FighterFactoryImpl implements FighterFactory {
     }
 
     @Override
-    public Fighter createFighter(String fighterName, FighterHeartClass healthClass) {
+    public Fighter createFighter(String fighterName, FighterHeartClass healthClass, SpecialAttack.Type attackType) {
         double initialSkillMean = 3.5;
         double initialSkillStdDev = 1.4;
 
@@ -39,7 +39,7 @@ public class FighterFactoryImpl implements FighterFactory {
         double health = healthClass.generateHealthValue(this.random);
 
         FighterSkillStateManager skillStateManager = skillStateManagerFactory.createSkillStateManager(this.random);
-        SpecialAttack specialAttack = this.specialAttackFactory.createSpecialAttack();
+        SpecialAttack specialAttack = this.specialAttackFactory.createSpecialAttack(attackType);
 
         return new Fighter(this.curFighterId++, fighterName, random, initialSkill, primeEvent, health, List.of(
                 new GaussianRandomSkillUpdater(0.8, 0.0, 0.28),

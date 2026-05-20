@@ -13,17 +13,19 @@ public class RandomSpecialAttackFactory implements SpecialAttackFactory {
     }
 
     @Override
-    public SpecialAttack createSpecialAttack() {
-        int ballColor = IntColorUtils.COMMON_COLORS[this.random.nextInt(IntColorUtils.COMMON_COLORS.length)];
-        BallAttack ballAttack = new BallAttack(ballColor);
-
-        SmallProjectileAttack.Type smallProjectileType = SmallProjectileAttack.Type.values()[this.random.nextInt(SmallProjectileAttack.Type.values().length)];
-        SmallProjectileAttack smallProjectileAttack = new SmallProjectileAttack(smallProjectileType);
-
-        LightningAttack lightningAttack = new LightningAttack();
-
-        SpecialAttack[] attacks = { ballAttack, smallProjectileAttack, lightningAttack };
-
-        return attacks[this.random.nextInt(attacks.length)];
+    public SpecialAttack createSpecialAttack(SpecialAttack.Type attackType) {
+        switch(attackType) {
+            case BALL -> {
+                int ballColor = IntColorUtils.COMMON_COLORS[this.random.nextInt(IntColorUtils.COMMON_COLORS.length)];
+                return new BallAttack(ballColor);
+            }
+            case SMALL_PROJECTILE -> {
+                SmallProjectileAttack.Type smallProjectileType = SmallProjectileAttack.Type.values()[this.random.nextInt(SmallProjectileAttack.Type.values().length)];
+                return new SmallProjectileAttack(smallProjectileType);
+            }
+            default -> {
+                return new LightningAttack();
+            }
+        }
     }
 }

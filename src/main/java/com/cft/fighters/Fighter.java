@@ -28,7 +28,7 @@ public class Fighter {
     private final FighterSkillStateManager skillStateManager;
 
     @JsonProperty
-    private final SpecialAttack specialAttack;
+    private SpecialAttack specialAttack;
 
     private double health;
     private int fightCount = 0;
@@ -141,6 +141,10 @@ public class Fighter {
 
     public SpecialAttack getSpecialAttack() {
         return this.specialAttack;
+    }
+
+    public void setSpecialAttack(SpecialAttack attack) {
+        this.specialAttack = attack;
     }
 
     public void update(List<Fighter> otherFighters) {
