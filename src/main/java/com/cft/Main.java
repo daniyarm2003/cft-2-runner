@@ -30,7 +30,7 @@ public class Main {
 
         FighterFactory fighterFactory = new FighterFactoryImpl(random, skillStateManagerFactory, specialAttackFactory);
 
-        CFTSaveContextSerializer contextSerializer = new JsonCFTSaveContextSerializer(jsonMapper, false);
+        CFTSaveContextSerializer contextSerializer = new JsonCFTSaveContextSerializer(jsonMapper, true);
         FileCFTStateSaver stateSaver = new FileCFTStateSaver(defaultFile, contextSerializer);
 
         CFTState cftState = new CFTState(fighterFactory, stateSaver, specialAttackFactory);
