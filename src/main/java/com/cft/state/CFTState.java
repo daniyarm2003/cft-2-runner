@@ -44,7 +44,7 @@ public class CFTState {
 
         for(Fighter fighter : activeFighters) {
             List<Fighter> otherFighters = activeFighters.stream()
-                    .filter(other -> other.getId() != fighter.getId())
+                    .filter(other -> other.getId() != fighter.getId() && other.getHeartClass() == fighter.getHeartClass())
                     .toList();
 
             fighter.update(otherFighters);
